@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מחשבון גיל</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 30px 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 640px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+        }
+
+        h1 {
+            text-align: center;
+            color: #4a4a8a;
+            font-size: 2rem;
+            margin-bottom: 6px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #999;
+            margin-bottom: 32px;
+            font-size: 0.95rem;
+        }
+
+        .form-group { margin-bottom: 20px; }
+
+        label {
+            display: block;
+            font-weight: 700;
+            color: #555;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        input[type="date"] {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #e0e0f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            color: #333;
+            transition: border-color 0.3s, background 0.3s;
+            background: #fafafa;
+            direction: ltr;
+            text-align: center;
+        }
+
+        input[type="date"]:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+        }
+
+        .gender-group { display: flex; gap: 14px; }
+
+        .gender-btn {
+            flex: 1;
+            padding: 14px 10px;
+            border: 2px solid #e0e0f0;
+            border-radius: 12px;
+            background: #fafafa;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 700;
+            color: #666;
+            transition: all 0.25s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .gender-btn:hover { border-color: #667eea; background: #f0f0ff; color: #667eea; }
+
+        .gender-btn.active {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-group { display: flex; gap: 12px; margin-top: 26px; }
+
+        .btn-calculate {
+            flex: 2;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-calculate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(102,126,234,0.45);
+        }
+
+        .btn-calculate:active { transform: translateY(0); }
+
+        .btn-reset {
+            flex: 1;
+            padding: 16px;
+            background: #f5f5f5;
+            color: #777;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-reset:hover { background: #ffe8e8; border-color: #ffb3b3; color: #cc4444; }
+
+        .error-msg {
+            background: #fff0f0;
+            border: 2px solid #ffcccc;
+            color: #cc3333;
+            padding: 14px 18px;
+            border-radius: 12px;
+            margin-top: 18px;
+            font-weight: 700;
+            text-align: center;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ===== Results ===== */
+        .results { margin-top: 34px; display: none; }
+
+        .result-card {
+            background: #f8f8ff;
+            border: 2px solid #eaeaf8;
+            border-radius: 16px;
+            padding: 20px 24px;
+            margin-bottom: 14px;
+            opacity: 0;
+            transform: translateY(22px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .result-card.visible { opacity: 1; transform: translateY(0); }
+
+        .result-card h3 {
+            color: #8080cc;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .result-card .value {
+            color: #2a2a5a;
+            font-size: 1.25rem;
+            font-weight: 700;
+            line-height: 1.5;
+        }
+
+        .value.xlarge { font-size: 1.55rem; }
+
+        /* ===== Battery ===== */
+        .battery-wrap {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-top: 14px;
+        }
+
+        .battery-shell {
+            flex: 1;
+            height: 38px;
+            border: 3px solid #555;
+            border-radius: 8px;
+            position: relative;
+            overflow: visible;
+            background: #ececec;
+        }
+
+        .battery-shell::after {
+            content: '';
+            position: absolute;
+            left: -11px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 8px;
+            height: 20px;
+            background: #555;
+            border-radius: 3px 0 0 3px;
+        }
+
+        .battery-inner {
+            height: 100%;
+            border-radius: 5px 0 0 5px;
+            transition: width 1.2s cubic-bezier(0.4,0,0.2,1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .battery-inner.green  { background: linear-gradient(90deg, #2ecc71, #a8e063); }
+        .battery-inner.orange { background: linear-gradient(90deg, #f39c12, #ffd200); }
+        .battery-inner.red    { background: linear-gradient(90deg, #e74c3c, #ff6b6b); }
+        .battery-inner.gold   {
+            background: linear-gradient(90deg, #f7971e, #ffd700, #f7971e);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite;
+        }
+
+        @keyframes shimmer {
+            0%   { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .battery-pct {
+            font-size: 1.3rem;
+            font-weight: 800;
+            min-width: 68px;
+            text-align: center;
+        }
+
+        .over100-msg {
+            display: none;
+            text-align: center;
+            margin-top: 14px;
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #c8860a;
+            animation: blinkText 0.9s infinite;
+        }
+
+        @keyframes blinkText {
+            0%, 100% { opacity: 1; }
+            50%       { opacity: 0.25; }
+        }
+
+        /* ===== Share button ===== */
+        .share-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 6px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .share-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 22px rgba(17,153,142,0.4);
+        }
+
+        /* ===== Confetti ===== */
+        .confetti-piece {
+            position: fixed;
+            top: -20px;
+            animation: confettiFall linear forwards;
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        @keyframes confettiFall {
+            0%   { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
+            80%  { opacity: 1; }
+            100% { transform: translateY(110vh) rotate(720deg) scale(0.7); opacity: 0; }
+        }
+
+        .divider {
+            border: none;
+            border-top: 2px dashed #eaeaf8;
+            margin: 6px 0 14px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🎂 מחשבון גיל</h1>
+    <p class="subtitle">גלה כמה אתה/את בדיוק בן/בת היום</p>
+
+    <div class="form-group">
+        <label for="birthdate">📅 תאריך לידה</label>
+        <input type="date" id="birthdate">
+    </div>
+
+    <div class="form-group">
+        <label>👤 מגדר</label>
+        <div class="gender-group">
+            <button class="gender-btn" data-gender="male" onclick="selectGender('male')">
+                👨 זכר
+            </button>
+            <button class="gender-btn" data-gender="female" onclick="selectGender('female')">
+                👩 נקבה
+            </button>
+        </div>
+    </div>
+
+    <div class="btn-group">
+        <button class="btn-calculate" onclick="calculateAge()">✨ חשב גיל</button>
+        <button class="btn-reset" onclick="resetAll()">🔄 איפוס</button>
+    </div>
+
+    <div class="error-msg" id="errorMsg"></div>
+
+    <!-- Results area (captured for screenshot) -->
+    <div class="results" id="results">
+
+        <div class="result-card" id="card1">
+            <h3>🎂 גיל מדויק</h3>
+            <div class="value xlarge" id="exactAge"></div>
+        </div>
+
+        <div class="result-card" id="card2">
+            <h3>📅 יום הלידה</h3>
+            <div class="value" id="birthDay"></div>
+        </div>
+
+        <div class="result-card" id="card3">
+            <h3>🎁 יום הולדת הבא</h3>
+            <div class="value" id="nextBirthday"></div>
+        </div>
+
+        <div class="result-card" id="card4">
+            <h3>🌍 עובדה מהשנה שנולדת</h3>
+            <div class="value" id="yearFact"></div>
+        </div>
+
+        <div class="result-card" id="card5">
+            <h3>⏳ תוחלת חיים</h3>
+            <div class="value" id="lifeExpectancy"></div>
+            <div class="battery-wrap">
+                <div class="battery-shell">
+                    <div class="battery-inner" id="batteryFill" style="width:0%"></div>
+                </div>
+                <div class="battery-pct" id="batteryPct">0%</div>
+            </div>
+            <div class="over100-msg" id="over100Msg">
+                🏆 אין עלייך! שברת את הסטטיסטיקה! 🏆
+            </div>
+        </div>
+
+        <div class="result-card" id="card6">
+            <h3>😄 מילה מעודדת</h3>
+            <div class="value" id="funQuote"></div>
+        </div>
+
+        <hr class="divider">
+
+        <button class="share-btn" onclick="shareResults()">
+            📸 שמור תוצאות כתמונה
+        </button>
+    </div>
+</div>
+
+<script>
+    /* ─── State ─── */
+    let selectedGender = null;
+
+    /* ─── Init ─── */
+    (function () {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm   = String(today.getMonth() + 1).padStart(2, '0');
+        const dd   = String(today.getDate()).padStart(2, '0');
+        document.getElementById('birthdate').max = `${yyyy}-${mm}-${dd}`;
+    })();
+
+    /* ─── Gender selector ─── */
+    function selectGender(gender) {
+        selectedGender = gender;
+        document.querySelectorAll('.gender-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.gender === gender);
+        });
+    }
+
+    /* ─── Errors ─── */
+    function showError(msg) {
+        const el = document.getElementById('errorMsg');
+        el.textContent = msg;
+        el.style.display = 'block';
+    }
+    function hideError() {
+        document.getElementById('errorMsg').style.display = 'none';
+    }
+
+    /* ─── Main calculation ─── */
+    function calculateAge() {
+        hideError();
+
+        const dateVal = document.getElementById('birthdate').value;
+        if (!dateVal) { showError('⚠️ נא להזין תאריך לידה'); return; }
+        if (!selectedGender) { showError('⚠️ נא לבחור מגדר'); return; }
+
+        const birth = new Date(dateVal);
+        const now   = new Date();
+        now.setHours(0, 0, 0, 0);
+        birth.setHours(0, 0, 0, 0);
+
+        if (birth > now) { showError('⚠️ תאריך הלידה לא יכול להיות בעתיד'); return; }
+
+        /* 1 ─ Exact age */
+        let years  = now.getFullYear() - birth.getFullYear();
+        let months = now.getMonth()    - birth.getMonth();
+        let days   = now.getDate()     - birth.getDate();
+
+        if (days < 0) {
+            months--;
+            days += new Date(now.getFullYear(), now.getMonth(), 0).getDate();
+        }
+        if (months < 0) { years--; months += 12; }
+
+        document.getElementById('exactAge').textContent =
+            `${years} שנים, ${months} חודשים, ${days} ימים`;
+
+        /* 2 ─ Day of week */
+        const HEB_DAYS = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+        document.getElementById('birthDay').textContent =
+            `נולדת ביום ${HEB_DAYS[birth.getDay()]}`;
+
+        /* 3 ─ Days to next birthday */
+        let nextBD = new Date(now.getFullYear(), birth.getMonth(), birth.getDate());
+        if (nextBD < now) nextBD.setFullYear(now.getFullYear() + 1);
+        const msDay     = 86400000;
+        const daysLeft  = Math.round((nextBD - now) / msDay);
+
+        document.getElementById('nextBirthday').textContent =
+            daysLeft === 0
+                ? '🎉 יום הולדת שמח! היום הוא יום ההולדת שלך!'
+                : `נותרו ${daysLeft} ימים ליום ההולדת הבא`;
+
+        /* 4 ─ Year fact */
+        document.getElementById('yearFact').textContent = getYearFact(birth.getFullYear());
+
+        /* 5 ─ Life expectancy */
+        const lifeExp = selectedGender === 'male' ? 81 : 84;
+        const pct     = Math.round((years / lifeExp) * 100);
+        const gLabel  = selectedGender === 'male'
+            ? `תוחלת החיים הממוצעת בישראל לגבר היא 81 שנה. ניצלת ${pct}% מהזמן שלך 😊`
+            : `תוחלת החיים הממוצעת בישראל לאישה היא 84 שנה. ניצלת ${pct}% מהזמן שלך 😊`;
+        document.getElementById('lifeExpectancy').textContent = gLabel;
+
+        /* Battery */
+        const fill    = document.getElementById('batteryFill');
+        const pctEl   = document.getElementById('batteryPct');
+        const over100 = document.getElementById('over100Msg');
+
+        fill.style.width = '0%';
+        fill.className   = 'battery-inner';
+        over100.style.display = 'none';
+
+        if (pct > 100) {
+            fill.classList.add('gold');
+            setTimeout(() => { fill.style.width = '100%'; }, 200);
+            pctEl.textContent  = pct + '%';
+            pctEl.style.color  = '#c8860a';
+            over100.style.display = 'block';
+            launchConfetti();
+        } else {
+            const colorClass = pct < 50 ? 'green' : pct < 80 ? 'orange' : 'red';
+            fill.classList.add(colorClass);
+            setTimeout(() => { fill.style.width = Math.max(pct, 2) + '%'; }, 200);
+            pctEl.textContent = pct + '%';
+            pctEl.style.color = pct < 50 ? '#27ae60' : pct < 80 ? '#e67e22' : '#e74c3c';
+        }
+
+        /* 6 ─ Fun quote */
+        document.getElementById('funQuote').textContent = getFunQuote(selectedGender, years);
+
+        /* ─ Animate cards ─ */
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.style.display = 'block';
+
+        document.querySelectorAll('.result-card').forEach(c => {
+            c.classList.remove('visible');
+        });
+        document.querySelectorAll('.result-card').forEach((card, i) => {
+            setTimeout(() => card.classList.add('visible'), i * 160);
+        });
+    }
+
+    /* ─── Year facts ─── */
+    function getYearFact(year) {
+        const facts = {
+            1920: "ליגת האומות הוקמה - ניסיון ראשון ליצור שלום עולמי",
+            1921: "אלברט איינשטיין זכה בפרס נובל לפיזיקה",
+            1922: "קבר פרעה תות-ענח-אמון התגלה במצרים",
+            1923: "הממשלה הגרמנית הדפיסה כל כך הרבה כסף שאנשים ישנו על שטרות",
+            1924: "האולימפיאדה הראשונה בחורף נערכה בשמוני, צרפת",
+            1925: "סרום הדיפטריה הובל לאלסקה בכלבי שלג - מרוץ גדי מפורסם",
+            1926: "הרי הודיני נפטר ביום הלואין",
+            1927: "צ'ארלס לינדברג טס לבדו לראשונה מניו-יורק לפריז",
+            1928: "אלכסנדר פלמינג גילה את הפניצילין - מהפכה ברפואה",
+            1929: "קריסת הבורסה בניו-יורק - תחילת השפל הגדול",
+            1930: "פלוטו התגלה - לימים הורד לדרגת כוכב ננסי",
+            1931: "גורד השחקים Empire State נחנך בניו-יורק",
+            1932: "המשחקים האולימפיים בלוס-אנג'לס",
+            1933: "הידלר עלה לשלטון בגרמניה",
+            1934: "בוני וקלייד נהרגו בארב משטרתי",
+            1935: "הרדיו הפך לאמצעי התקשורת הנפוץ ביותר בעולם",
+            1936: "אולימפיאדת ברלין - ג'סי אוונס זכה ב-4 מדליות זהב",
+            1937: "ספינת האוויר הינדנבורג עלתה באש בניו-ג'רזי",
+            1938: "גרמניה סיפחה את אוסטריה",
+            1939: "פרוץ מלחמת העולם השנייה",
+            1940: "ביצור דנקירק - 338,000 חיילים פונו בנס",
+            1941: "יפן תקפה את פרל הרבור - ארה\"ב נכנסת למלחמה",
+            1942: "קרב סטלינגרד - אחד הקרבות הגדולים בהיסטוריה",
+            1943: "מרד גטו ורשה",
+            1944: "יום D - הפלישה לנורמנדי",
+            1945: "סיום מלחמת העולם השנייה",
+            1946: "האו\"ם הוקם רשמית בניו-יורק",
+            1947: "תוכנית מרשל לשיקום אירופה",
+            1948: "הכרזת מדינת ישראל ב-14 במאי",
+            1949: "נאט\"ו הוקם",
+            1950: "פרוץ מלחמת קוריאה",
+            1951: "הטלוויזיה הצבעונית הושקה בארה\"ב",
+            1952: "פלמינג וצ'יין קיבלו פרס נובל על הפניצילין",
+            1953: "ווטסון וקריק גילו את מבנה הDNA",
+            1954: "ב.ב. קינג הוציא את האלבום הראשון שלו",
+            1955: "אלברט איינשטיין נפטר",
+            1956: "מלחמת סיני - ישראל ומצרים",
+            1957: "ספוטניק - ברה\"מ שיגרה את הלוויין הראשון לחלל",
+            1958: "נאס\"א הוקמה",
+            1959: "קסטרו השתלט על קובה",
+            1960: "ג'ון קנדי נבחר לנשיאות ארה\"ב",
+            1961: "יורי גגרין הפך לאדם הראשון שטס לחלל",
+            1962: "משבר הטילים בקובה",
+            1963: "חיסולו של הנשיא קנדי בדאלאס",
+            1964: "הביטלס פרצו לאמריקה",
+            1965: "מלחמת וייטנאם התעצמה",
+            1966: "לוי אשכול - ראש ממשלה ראשון שנולד בארץ-ישראל",
+            1967: "מלחמת ששת הימים",
+            1968: "רצח רובי קנדי ומרטין לות'ר קינג",
+            1969: "נייל ארמסטרונג דרך על הירח לראשונה",
+            1970: "הביטלס פרקו את הלהקה",
+            1971: "מיקרו-מעבד ראשון פותח על ידי אינטל",
+            1972: "פיגוע מינכן - רצח ספורטאים ישראלים",
+            1973: "מלחמת יום כיפור",
+            1974: "ניקסון התפטר בעקבות פרשת ווטרגייט",
+            1975: "נפילת סייגון - סוף מלחמת וייטנאם",
+            1976: "מבצע אנטבה - שחרור החטופים",
+            1977: "מנחם בגין נבחר כראש ממשלת ישראל",
+            1978: "הסכמי קמפ-דייוויד - שלום עם מצרים",
+            1979: "מהפכה איסלאמית באיראן",
+            1980: "ג'ון לנון נרצח בניו-יורק",
+            1981: "IBM השיקה את המחשב האישי",
+            1982: "מלחמת לבנון הראשונה",
+            1983: "הטלפון הסלולרי הראשון הושק לציבור",
+            1984: "אפל השיקה את ה-Macintosh",
+            1985: "Live Aid - קונצרט לסיוע לאתיופיה",
+            1986: "אסון צ'רנוביל",
+            1987: "אינתיפאדה ראשונה",
+            1988: "פציינט 0 - מושג האיידס נכנס למודעות הציבור",
+            1989: "נפילת חומת ברלין",
+            1990: "שחרורו של נלסון מנדלה לאחר 27 שנות כלא",
+            1991: "התמוטטות ברית המועצות",
+            1992: "המשחקים האולימפיים בברצלונה",
+            1993: "הסכמי אוסלו - רבין ועאראפאת",
+            1994: "מונדיאל ארה\"ב - ברזיל אלופה",
+            1995: "רצח יצחק רבין",
+            1996: "כבשה דולי - יצור משובט ראשון בהיסטוריה",
+            1997: "הארי פוטר הראשון פורסם",
+            1998: "גוגל הוקמה",
+            1999: "Y2K - חשש עולמי לקריסת מחשבים בכניסה לאלף השלישי",
+            2000: "כניסה לאלפיום החדש - המחשבים לא קרסו",
+            2001: "פיגועי 11 בספטמבר",
+            2002: "האירו - מטבע האיחוד האירופי נכנס לשימוש",
+            2003: "מלחמת עיראק - נפילת סדאם חוסיין",
+            2004: "פייסבוק הוקמה",
+            2005: "יוטיוב הוקמה",
+            2006: "פלוטו הורד רשמית לדרגת כוכב ננסי",
+            2007: "האייפון הראשון הושק",
+            2008: "המשבר הכלכלי העולמי",
+            2009: "ברק אובמה - נשיא ארה\"ב הראשון ממוצא אפריקאי",
+            2010: "האייפד הראשון הושק",
+            2011: "מות אוסמה בן לאדן",
+            2012: "המשחקים האולימפיים בלונדון",
+            2013: "אדוארד סנואדן חשף מעקב המוני של NSA",
+            2014: "מונדיאל ברזיל - גרמניה אלופה",
+            2015: "הסכם פריז לאקלים",
+            2016: "דונלד טראמפ נבחר לנשיאות ארה\"ב",
+            2017: "מהפכת #MeToo",
+            2018: "מונדיאל רוסיה - צרפת אלופה",
+            2019: "ישראל שיגרה גשושית לירח (בראשית)",
+            2020: "פנדמיית קורונה פרצה בכל העולם",
+            2021: "חיסוני קורונה ניתנו לכל עם ישראל",
+            2022: "פלישת רוסיה לאוקראינה",
+            2023: "מלחמת חרבות ברזל - 7 באוקטובר",
+            2024: "המשך מלחמת ישראל בעזה",
+            2025: "בינה מלאכותית משתלטת על כל תחומי החיים"
+        };
+
+        if (facts[year]) return facts[year];
+        if (year < 1920) return `שנת ${year} - לפני הרדיו, לפני הטלוויזיה, העולם היה שקט הרבה יותר`;
+        return `שנת ${year} - שנה מעניינת בהיסטוריה`;
+    }
+
+    /* ─── Fun quotes ─── */
+    function getFunQuote(gender, age) {
+        const male = [
+            "צא לחופש, אבל אל תשכח לבקש רשות מהאישה 😄",
+            "הברכיים שלך כבר מוציאות יותר קולות מהסטריאו - זה לגמרי נורמלי",
+            "בגיל שלך, שינה על הספה נקראת 'מדיטציה עמוקה'",
+            "עדיין צעיר! לפחות ככה אמא שלך אומרת לכולם",
+            "כל בוקר שאתה מתעורר זה ניצחון - שמור על זה!",
+            "הגיל שלך הוא רק מספר, אבל הגב שלך לא מסכים",
+            "עכשיו אתה יכול להגיד לצעירים: 'כשהייתי בגילך...' 😎",
+            "אתה לא מזדקן, אתה פשוט משתפר כמו יין טוב 🍷",
+            "בגיל שלך, להירדם מול הטלוויזיה נחשב 'מנוחה מרוויחה'",
+            "אתה בשיא! לפחות ככה נראה בפרופיל האינסטגרם שלך 💪"
+        ];
+
+        const female = [
+            "את עדיין צעירה! לפחות ככה את מרגישה אחרי קפה הבוקר 😄",
+            "בגיל שלך כבר יודעת מה אמת - ולמי לא להגיד",
+            "את בשיא היופי! לפחות זה מה שחברה הכי טובה שלך אומרת",
+            "הגיל שלך הוא סוד - ומי שמנחש טועה בפחות עשר",
+            "כבר ניסית הכל ויודעת מה עובד - זו חוכמת חיים!",
+            "את עדיין יכולה לרקוד כל הלילה! רק תוודאי שיש אספירין לבוקר",
+            "כל שנה מוסיפה חוכמה - ומינוס קצת זיכרון לשמות 😊",
+            "את לא מזדקנת, את הופכת ל-וינטג' - והמחיר רק עולה!",
+            "בגיל שלך, שתיית קפה בשקט הוא ספורט אקסטרים",
+            "חכמה, חזקה ויפה - ולמי שלא מסכים יש את הדלת 💪"
+        ];
+
+        const quotes = gender === 'male' ? male : female;
+        return quotes[Math.floor(Math.random() * quotes.length)];
+    }
+
+    /* ─── Confetti ─── */
+    function launchConfetti() {
+        const colors = ['#ff6b6b','#ffd93d','#6bcb77','#4d96ff','#ff922b','#cc5de8','#ff99cc'];
+        for (let i = 0; i < 100; i++) {
+            setTimeout(() => {
+                const el = document.createElement('div');
+                el.classList.add('confetti-piece');
+                const size = 8 + Math.random() * 10;
+                el.style.left              = Math.random() * 100 + 'vw';
+                el.style.width             = size + 'px';
+                el.style.height            = size + 'px';
+                el.style.background        = colors[Math.floor(Math.random() * colors.length)];
+                el.style.borderRadius      = Math.random() > 0.5 ? '50%' : '3px';
+                el.style.animationDuration = (2.5 + Math.random() * 3) + 's';
+                document.body.appendChild(el);
+                setTimeout(() => el.remove(), 6000);
+            }, i * 40);
+        }
+    }
+
+    /* ─── Reset ─── */
+    function resetAll() {
+        document.getElementById('birthdate').value = '';
+        selectedGender = null;
+        document.querySelectorAll('.gender-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('results').style.display = 'none';
+        document.querySelectorAll('.result-card').forEach(c => c.classList.remove('visible'));
+        hideError();
+    }
+
+    /* ─── Share / Screenshot ─── */
+    async function shareResults() {
+        const el = document.getElementById('results');
+        try {
+            const canvas = await html2canvas(el, {
+                backgroundColor: '#ffffff',
+                scale: 2,
+                useCORS: true,
+                ignoreElements: el => el.classList.contains('share-btn')
+            });
+            const link      = document.createElement('a');
+            link.download   = 'גיל-שלי.png';
+            link.href       = canvas.toDataURL('image/png');
+            link.click();
+        } catch (e) {
+            alert('שגיאה בשמירת התמונה. נסה שנית.');
+        }
+    }
+</script>
+</body>
+</html>
